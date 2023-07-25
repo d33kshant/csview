@@ -37,3 +37,6 @@ def view(filename):
     csv = pd.read_csv(file_path)
     
     return f"<pre>{str(csv.iloc[offset:offset+MAX_ITEM_PER_PAGE])}</pre>"
+
+if __name__ == "__main__":
+    app.run(debug=True)
