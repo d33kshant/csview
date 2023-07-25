@@ -1,4 +1,4 @@
-import os, pandas as pd
+import os, math, pandas as pd
 from flask import Flask, render_template, request, redirect
 
 UPLOAD_DIR = "uploads"
@@ -30,13 +30,26 @@ def upload():
 
 @app.route("/view/<filename>")
 def view(filename):
+    sort_by = request.args.get('sort_by', None)
+    sort_desc = request.args.get('desc', 0, type=int)
+
     page = request.args.get('page', 1, type=int)
     offset = (page - 1) * MAX_ITEM_PER_PAGE
 
     file_path = os.path.join(UPLOAD_DIR, filename)
     csv = pd.read_csv(file_path)
+    page_count = math.ceil(len(csv.index) / MAX_ITEM_PER_PAGE )
     
-    return f"<pre>{str(csv.iloc[offset:offset+MAX_ITEM_PER_PAGE])}</pre>"
+    if sort_by != '' and sort_by in csv.keys():
+        csv = csv.sort_values(sort_by.lower(), ascending=bool(sort_desc))
+
+    csv = csv.iloc[offset:offset+MAX_ITEM_PER_PAGE]
+
+    columns = csv.keys().to_list()
+    rows = []
+    for item in zip(csv.index.tolist(), csv.values.tolist()):
+        rows.append([item[0]]+item[1])
+    return render_template("view.html", columns=columns, rows=rows, page_count=page_count)
 
 if __name__ == "__main__":
     app.run(debug=True)
