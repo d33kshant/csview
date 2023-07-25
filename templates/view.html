@@ -1,0 +1,84 @@
+{% extends "layouts/main.html" %}
+{% from 'macros/table.html' import makeTable %}
+
+{% block head %}
+<title>View • csview</title>
+<style>
+    table, th, tr, td {
+        border: 1px solid;
+        border-collapse: collapse;
+        font-family: monospace;
+    }
+    th, tr, td { padding: 2px 6px; }
+    th { text-transform: uppercase; }
+    th a { text-decoration: none; color: blue; }
+    td:nth-child(1) { font-weight: bold; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div>
+    {% if rows|length > 0 %}
+        {{ makeTable(columns, rows) }}
+    {% else %}
+        <p>No data to be shown</p>
+    {% endif %}
+    <div style="margin-top: 8px;">
+        <button class="prev">Previous</button>
+        <button class="next">Next</button>
+    </div>
+
+    <script defer>
+        const nextButton = document.querySelector(".next")
+        const prevButton = document.querySelector(".prev")
+        const tableHeads = document.querySelectorAll('.table-heads')
+        
+        const baseURL = new URL(window.location)
+        const currentSort = baseURL.searchParams.get('sort_by')
+
+        const page = Number(baseURL.searchParams.get("page") || 1)
+        if (page == 1) prevButton.setAttribute("disabled", true)
+        if (page == {{page_count}}) nextButton.setAttribute("disabled", true)
+
+        tableHeads.forEach(tableHead => {
+            const value = tableHead.getAttribute("aria-valuetext")
+            if (value) {
+                let symbol = ""
+                const newURL = new URL(window.location)
+                newURL.searchParams.set('sort_by', value.toLocaleLowerCase())
+                newURL.searchParams.delete('desc')
+                if (value === currentSort) {
+                    symbol = baseURL.searchParams.has("desc") ? "▲" : "▼"
+                }
+                if (value === currentSort && !baseURL.searchParams.has('desc')) {
+                    newURL.searchParams.set("desc", '1');
+                }
+                tableHead.innerHTML = `<a href=${newURL.href}>${symbol} ${value}</a>`
+            }
+        })
+
+        function prev() {
+            const url = new URL(window.location)
+            const currentPage = Number(url.searchParams.get("page") || 1)
+
+            if (currentPage > 1) {
+                url.searchParams.set("page", (currentPage-1))
+                window.location = url
+            }
+        }
+
+        function next() {
+            const url = new URL(window.location)
+            const currentPage = Number(url.searchParams.get("page") || 1)
+
+            if (currentPage < {{ page_count }}) {
+                url.searchParams.set("page", (currentPage+1))
+                window.location = url
+            }
+        }
+
+        nextButton.addEventListener("click", next)
+        prevButton.addEventListener("click", prev)
+    </script>
+</div>
+{% endblock %}
