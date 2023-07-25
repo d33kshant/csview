@@ -1,0 +1,17 @@
+{% macro makeTable(columns, rows) -%}
+<table>
+    <tr>
+        <th></th>
+        {% for column in columns %}
+            <th class="table-heads" aria-valuetext="{{column}}">{{ column }}</th>
+        {% endfor %}
+    </tr>
+    {% for row in rows %}
+        <tr>
+            {% for item in row %}
+                <td>{{ item }}</td>
+            {% endfor %}
+        </tr>
+    {% endfor %}
+</table>
+{%- endmacro %}
