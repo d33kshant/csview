@@ -1,7 +1,8 @@
-import os
+import os, pandas as pd
 from flask import Flask, render_template, request, redirect
 
 UPLOAD_DIR = "uploads"
+MAX_ITEM_PER_PAGE = 20
 
 app = Flask(__name__)
 
@@ -26,3 +27,13 @@ def upload():
         else:
             return "Not a csv file"
     return render_template("upload.html")
+
+@app.route("/view/<filename>")
+def view(filename):
+    page = request.args.get('page', 1, type=int)
+    offset = (page - 1) * MAX_ITEM_PER_PAGE
+
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    csv = pd.read_csv(file_path)
+    
+    return f"<pre>{str(csv.iloc[offset:offset+MAX_ITEM_PER_PAGE])}</pre>"
